@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ten-Year Channel Ranks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --fg:#17202b; --muted:#5d6878; --line:#dde2e9; --hover:#eef2f7;
+  --mean:#b7791f; --up1:#0b8fae; --up2:#2f66d0; --dn3:#d4355a; --dn4:#a3163a; --weak:#8a94a3;
+  --chip:#eaedf2; --chip-on:#17202b; --chip-on-fg:#ffffff; --pos:#15803d; --neg:#be123c;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-data:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --panel:#151c25; --fg:#e4e9f0; --muted:#97a3b4; --line:#273140; --hover:#1c2532;
+  --mean:#e3a63c; --up1:#36c0df; --up2:#6f9bff; --dn3:#ff6b8a; --dn4:#e0466a; --weak:#6d7887;
+  --chip:#1f2833; --chip-on:#e4e9f0; --chip-on-fg:#0f141b; --pos:#4ade80; --neg:#fb7185; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --panel:#151c25; --fg:#e4e9f0; --muted:#97a3b4; --line:#273140; --hover:#1c2532;
+  --mean:#e3a63c; --up1:#36c0df; --up2:#6f9bff; --dn3:#ff6b8a; --dn4:#e0466a; --weak:#6d7887;
+  --chip:#1f2833; --chip-on:#e4e9f0; --chip-on-fg:#0f141b; --pos:#4ade80; --neg:#fb7185; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45}
+.wrap{max-width:1240px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+h1{font-family:var(--f-display);font-weight:600;font-size:28px;letter-spacing:.01em;margin:0;text-wrap:balance}
+.lede{color:var(--muted);max-width:74ch;margin:4px 0 0}
+.lede b{color:var(--fg);font-weight:500}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{font:500 12px var(--f-data);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 11px;cursor:pointer}
+.btn:hover{background:var(--hover)}
+.cross-box{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.cross-box summary{cursor:pointer;font-weight:600;font-size:13px;list-style:none;display:flex;align-items:center;gap:8px}
+.cross-box summary::-webkit-details-marker{display:none}
+.cross-pill{font:500 11px var(--f-data);background:var(--chip);color:var(--fg);border-radius:999px;padding:2px 8px}
+.cross-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.cross-item{font:12px var(--f-data);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:var(--fg);text-decoration:none}
+.cross-item:hover{background:var(--hover)}
+.cross-item small{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);font-family:var(--f-data)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:0;border-top:2px solid;display:inline-block}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tab{font:600 15px var(--f-display);letter-spacing:.02em;background:none;border:0;color:var(--muted);padding:8px 14px;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
+.tab[aria-selected="true"]{color:var(--fg);border-color:var(--fg)}
+.tab small{font-family:var(--f-data);font-weight:400;font-size:12px;margin-left:4px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.controls label{font-size:12px;color:var(--muted);display:inline-flex;gap:6px;align-items:center;text-transform:uppercase;letter-spacing:.06em}
+input[type=search],select{font:14px var(--f-body);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+input[type=search]{width:min(260px,100%)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:12px var(--f-data);border:1px solid transparent;background:var(--chip);color:var(--fg);border-radius:999px;padding:4px 10px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip .dot{width:8px;height:8px;border-radius:50%}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg)}
+button:focus-visible,input:focus-visible,select:focus-visible,th:focus-visible,a:focus-visible{outline:2px solid var(--up2);outline-offset:2px}
+.bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.count{font-size:12px;color:var(--muted);font-family:var(--f-data)}
+.tablebox{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:940px;font-variant-numeric:tabular-nums}
+th{position:sticky;top:0;background:var(--panel);text-align:left;font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:10px 10px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none}
+th.num,td.num{text-align:right}
+th[aria-sort="ascending"]::after{content:" ▲";font-size:9px}
+th[aria-sort="descending"]::after{content:" ▼";font-size:9px}
+td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--hover)}
+td.tk{font-family:var(--f-data);font-weight:500}
+td.tk a{color:inherit;text-decoration:none}
+td.tk a:hover{text-decoration:underline;color:var(--up2)}
+td.nm{max-width:300px;overflow:hidden;text-overflow:ellipsis;color:var(--fg)}
+td.rk,td.rg{color:var(--muted);font-family:var(--f-data);font-size:12px}
+td.num{font-family:var(--f-data);font-size:13px}
+td.z{font-family:var(--f-data);font-weight:500}
+tr.weak td{color:var(--weak)}
+tr.weak td.z{font-weight:400}
+.tag{font:10px var(--f-data);border:1px solid var(--weak);color:var(--weak);border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:1px}
+.tag-cross{border-color:var(--up1);color:var(--up1)}
+.strip{position:relative;width:160px;height:16px}
+.strip .axis{position:absolute;left:0;right:0;top:7px;height:2px;background:var(--line)}
+.strip .t{position:absolute;top:2px;width:2px;height:12px;transform:translateX(-1px)}
+.strip .m{position:absolute;top:3px;width:10px;height:10px;border-radius:50%;transform:translateX(-5px);background:var(--fg);box-shadow:0 0 0 2px var(--panel)}
+.strip .m.off{border-radius:2px}
+.foot{font-size:12px;color:var(--muted);max-width:84ch;display:grid;gap:4px}
+.foot code{font-family:var(--f-data)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.err{background:var(--panel);border:1px solid var(--dn3);color:var(--dn3);border-radius:8px;padding:14px}
+@media (max-width:600px){h1{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Ten-Year Channel Ranks</h1>
+      <p class="lede">Where each stock over <b>$50bn</b> and each Atlas ETF sits against its own 2,500-trading-day linear regression, in standard deviations. Daily Yahoo closes to <b id="asof">loading...</b>. Negative means below the line.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="csv-btn" type="button">Export CSV</button>
+      <button class="btn" id="theme-btn" type="button">Theme</button>
+    </div>
+  </header>
+
+  <div id="error" class="err" hidden></div>
+
+  <details class="cross-box" id="cross-box" hidden>
+    <summary>Band crossings since previous run <span class="cross-pill" id="cross-count">0</span></summary>
+    <div class="cross-grid" id="cross-grid"></div>
+  </details>
+
+  <div class="legend" aria-label="Band key">
+    <span><i style="border-color:var(--dn4)"></i>-4 SD</span>
+    <span><i style="border-color:var(--dn3)"></i>-3 SD</span>
+    <span><i style="border-color:var(--mean)"></i>Mean</span>
+    <span><i style="border-color:var(--up1)"></i>+1 SD</span>
+    <span><i style="border-color:var(--up2)"></i>+2 SD</span>
+    <span>Strip scale -5 to +5 SD</span>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-s" data-k="s" aria-selected="true">Stocks <small id="n-s"></small></button>
+    <button class="tab" role="tab" id="tab-e" data-k="e" aria-selected="false">ETFs and funds <small id="n-e"></small></button>
+  </div>
+
+  <div class="controls">
+    <input type="search" id="q" placeholder="Search ticker or name" aria-label="Search ticker or name">
+    <label for="rmin">Fit
+      <select id="rmin">
+        <option value="-2">Any R</option>
+        <option value="0.5">R &ge; 0.5</option>
+        <option value="0.7" selected>R &ge; 0.7</option>
+        <option value="0.85">R &ge; 0.85</option>
+      </select>
+    </label>
+    <label for="amin" id="amin-wrap" hidden>Fund size
+      <select id="amin">
+        <option value="0">Any</option>
+        <option value="0.1">&ge; 0.1bn</option>
+        <option value="0.5" selected>&ge; 0.5bn</option>
+        <option value="1">&ge; 1bn</option>
+        <option value="5">&ge; 5bn</option>
+      </select>
+    </label>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="bar">
+    <div class="count" id="count">Loading live scan...</div>
+    <div class="count" id="updated"></div>
+  </div>
+
+  <div class="tablebox">
+    <table>
+      <thead><tr id="head"></tr></thead>
+      <tbody id="body"><tr><td colspan="11" class="empty">Loading latest GitHub Actions scan...</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    <div>Method: Python port of the Pine indicator "Fixed 2500-Trading-Day Std Dev Channel". Window is every daily bar within 3,624 calendar days of the last close (about 2,493 bars). Least-squares line of close on time, residual SD with n - 1. SD position = (close - line value at last bar) / SD.</div>
+    <div>The fit is linear in price. Compounding names such as NVDA follow a curve, which widens the SD and pulls their position towards zero. Rows with Pearson R under 0.7 are hidden by default and greyed when shown.</div>
+    <div>Updated automatically every weekday at 22:15 UTC by GitHub Actions in <code>soylee22/atlas-stock-screener</code>. Clicking any ticker opens its Yahoo Finance quote page.</div>
+  </div>
+</div>
+
+<script>
+const DATA_URL = "https://raw.githubusercontent.com/soylee22/atlas-stock-screener/main/sd_channel/data.json";
+const F = {t:0, n:1, k:2, r:3, size:4, z:5, dz:6, R:7, close:8, mean:9, sd:10, cur:11, cross:12};
+const ZONES = [
+  {id:"a2", label:"above +2",   test:z=>z>=2,          c:"var(--up2)"},
+  {id:"12", label:"+1 to +2",   test:z=>z>=1&&z<2,     c:"var(--up1)"},
+  {id:"01", label:"mean to +1", test:z=>z>=0&&z<1,     c:"var(--mean)"},
+  {id:"m1", label:"mean to -1", test:z=>z<0&&z>-1,     c:"var(--mean)"},
+  {id:"13", label:"-1 to -3",   test:z=>z<=-1&&z>-3,   c:"var(--dn3)"},
+  {id:"34", label:"-3 to -4",   test:z=>z<=-3&&z>-4,   c:"var(--dn3)"},
+  {id:"b4", label:"below -4",   test:z=>z<=-4,         c:"var(--dn4)"}
+];
+const COLS = [
+  {key:"rank",  label:"#",           cls:"rk",  num:true, nosort:true},
+  {key:"t",     label:"Ticker",      cls:"tk"},
+  {key:"n",     label:"Name",        cls:"nm"},
+  {key:"r",     label:"Mkt",         cls:"rg"},
+  {key:"size",  label:"Size",        cls:"num", num:true},
+  {key:"z",     label:"SD position", cls:"num z", num:true},
+  {key:"dz",    label:"1d ΔSD",      cls:"num", num:true},
+  {key:"strip", label:"Channel",     nosort:true},
+  {key:"R",     label:"Pearson R",   cls:"num", num:true},
+  {key:"close", label:"Close",       cls:"num", num:true},
+  {key:"mean",  label:"Line",        cls:"num", num:true}
+];
+
+let ROWS = [];
+let LAST_FILTERED = [];
+let META = {asof:""};
+const st = {k:"s", q:"", rmin:0.7, amin:0.5, zones:new Set(), sort:"z", dir:1};
+try {
+  const saved = JSON.parse(localStorage.getItem("chanrank_v2") || "{}");
+  if (saved.k) st.k = saved.k;
+  if (saved.sort) st.sort = saved.sort;
+  if (saved.dir) st.dir = saved.dir;
+  if (saved.theme) document.documentElement.setAttribute("data-theme", saved.theme);
+} catch (e) {}
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = (v, d=2) => v == null ? "-" : v.toLocaleString("en-GB", {minimumFractionDigits:d, maximumFractionDigits:d});
+const px = v => v == null ? "-" : v >= 1000 ? fmt(v, 0) : v >= 10 ? fmt(v, 2) : fmt(v, 3);
+const zc = z => z >= 2 ? "var(--up2)" : z >= 1 ? "var(--up1)" : z > -1 ? "var(--fg)" : z > -3 ? "var(--dn3)" : "var(--dn4)";
+const pos = z => Math.max(0, Math.min(100, (z + 5) * 10));
+
+function strip(z) {
+  const ticks = [[-4,"--dn4"],[-3,"--dn3"],[0,"--mean"],[1,"--up1"],[2,"--up2"]]
+    .map(([v,c]) => `<span class="t" style="left:${pos(v)}%;background:var(${c})"></span>`).join("");
+  const off = z > 5 || z < -5;
+  return `<div class="strip" aria-hidden="true"><span class="axis"></span>${ticks}<span class="m${off?" off":""}" style="left:${pos(z)}%;background:${zc(z)}"></span></div>`;
+}
+
+function base() {
+  return ROWS.filter(r => r[F.k] === st.k && (r[F.R] ?? -2) >= st.rmin && (st.k === "s" || (r[F.size] ?? 0) >= st.amin));
+}
+
+function renderCrossings(crossings) {
+  const box = $("cross-box");
+  if (!crossings || !crossings.length) {
+    box.hidden = true;
+    return;
+  }
+  box.hidden = false;
+  $("cross-count").textContent = crossings.length;
+  $("cross-grid").innerHTML = crossings.map(([tk, nm, k, z, dz, R, label]) =>
+    `<button type="button" class="cross-item" data-tk="${esc(tk)}" data-k="${esc(k)}">
+      <b>${esc(tk)}</b>
+      <span style="color:${zc(z)}">${z > 0 ? "+" : ""}${fmt(z, 2)}</span>
+      <small>${esc(label)}</small>
+    </button>`
+  ).join("");
+}
+
+function render() {
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.k === st.k));
+  $("amin-wrap").hidden = st.k !== "e";
+  ["s", "e"].forEach(k => $("n-" + k).textContent = ROWS.filter(r => r[F.k] === k).length);
+  const b = base();
+  $("chips").innerHTML = ZONES.map(z => {
+    const n = b.filter(r => z.test(r[F.z])).length;
+    return `<button class="chip" data-z="${z.id}" aria-pressed="${st.zones.has(z.id)}"><span class="dot" style="background:${z.c}"></span>${z.label} · ${n}</button>`;
+  }).join("");
+
+  const q = st.q.toLowerCase();
+  let rows = b.filter(r =>
+    (!q || r[F.t].toLowerCase().includes(q) || r[F.n].toLowerCase().includes(q)) &&
+    (!st.zones.size || ZONES.some(z => st.zones.has(z.id) && z.test(r[F.z])))
+  );
+  const i = F[st.sort];
+  rows.sort((a, c) => {
+    const x = a[i], y = c[i];
+    if (x == null && y == null) return 0;
+    if (x == null) return 1;
+    if (y == null) return -1;
+    return (typeof x === "string" ? x.localeCompare(y) : x - y) * st.dir;
+  });
+  LAST_FILTERED = rows;
+
+  $("head").innerHTML = COLS.map(c => {
+    let lab = c.key === "size" ? (st.k === "s" ? "Mkt cap $bn" : "AUM bn") : c.label;
+    const s = c.key === st.sort ? (st.dir > 0 ? "ascending" : "descending") : "none";
+    return `<th class="${c.num ? "num" : ""}" ${c.nosort ? "" : `tabindex="0" data-s="${c.key}" aria-sort="${s}"`}>${lab}</th>`;
+  }).join("");
+
+  $("count").textContent = `${rows.length} of ${ROWS.filter(r => r[F.k] === st.k).length} shown`;
+  $("body").innerHTML = rows.length ? rows.map((r, n) => {
+    const weak = (r[F.R] ?? 0) < 0.7;
+    const size = st.k === "e" && r[F.cur]
+      ? `${fmt(r[F.size], 2)} <span style="color:var(--muted);font-size:11px">${esc(r[F.cur])}</span>`
+      : fmt(r[F.size], (r[F.size] ?? 0) >= 100 ? 0 : 1);
+    const dzVal = r[F.dz];
+    const dzTxt = dzVal == null ? "-" : `${dzVal > 0 ? "+" : ""}${fmt(dzVal, 2)}`;
+    const dzCol = dzVal == null ? "var(--muted)" : dzVal > 0 ? "var(--pos)" : dzVal < 0 ? "var(--neg)" : "var(--muted)";
+    const crossTag = r[F.cross] ? `<span class="tag tag-cross">${esc(r[F.cross])}</span>` : "";
+    const weakTag = weak ? `<span class="tag">weak fit</span>` : "";
+    return `<tr class="${weak ? "weak" : ""}">
+      <td class="rk">${n + 1}</td>
+      <td class="tk"><a href="https://finance.yahoo.com/quote/${encodeURIComponent(r[F.t])}" target="_blank" rel="noopener">${esc(r[F.t])}</a></td>
+      <td class="nm" title="${esc(r[F.n])}">${esc(r[F.n])}${crossTag}${weakTag}</td>
+      <td class="rg">${esc((r[F.r] || "").toUpperCase())}</td>
+      <td class="num">${size}</td>
+      <td class="num z" style="color:${weak ? "var(--weak)" : zc(r[F.z])}">${r[F.z] > 0 ? "+" : ""}${fmt(r[F.z], 2)}</td>
+      <td class="num" style="color:${dzCol}">${dzTxt}</td>
+      <td>${strip(r[F.z])}</td>
+      <td class="num">${fmt(r[F.R], 2)}</td>
+      <td class="num">${px(r[F.close])}</td>
+      <td class="num">${px(r[F.mean])}</td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="11" class="empty">No rows match. Clear the search or a zone filter.</td></tr>`;
+
+  try {
+    localStorage.setItem("chanrank_v2", JSON.stringify({
+      k: st.k, sort: st.sort, dir: st.dir,
+      theme: document.documentElement.getAttribute("data-theme") || ""
+    }));
+  } catch (e) {}
+}
+
+function exportCsv() {
+  if (!LAST_FILTERED.length) return;
+  const header = ["ticker","name","kind","region","size_bn","sd_position","dz_1d","pearson_r","close","line","sd","currency","crossing"];
+  const lines = [header.join(",")].concat(LAST_FILTERED.map(r =>
+    [r[F.t], r[F.n], r[F.k] === "s" ? "stock" : "etf", r[F.r], r[F.size], r[F.z], r[F.dz], r[F.R], r[F.close], r[F.mean], r[F.sd], r[F.cur], r[F.cross]]
+      .map(v => v == null ? "" : `"${String(v).replace(/"/g, '""')}"`).join(",")
+  ));
+  const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `sd-channel-${META.asof || "latest"}-${st.k === "s" ? "stocks" : "etfs"}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.querySelector(".tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab");
+  if (!b) return;
+  st.k = b.dataset.k;
+  st.zones.clear();
+  render();
+});
+$("q").addEventListener("input", e => { st.q = e.target.value; render(); });
+$("rmin").addEventListener("change", e => { st.rmin = +e.target.value; render(); });
+$("amin").addEventListener("change", e => { st.amin = +e.target.value; render(); });
+$("chips").addEventListener("click", e => {
+  const b = e.target.closest(".chip");
+  if (!b) return;
+  const z = b.dataset.z;
+  st.zones.has(z) ? st.zones.delete(z) : st.zones.add(z);
+  render();
+});
+$("cross-grid").addEventListener("click", e => {
+  const b = e.target.closest(".cross-item");
+  if (!b) return;
+  st.k = b.dataset.k;
+  st.q = b.dataset.tk;
+  $("q").value = b.dataset.tk;
+  st.zones.clear();
+  render();
+});
+$("csv-btn").addEventListener("click", exportCsv);
+$("theme-btn").addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme:dark)").matches;
+  document.documentElement.setAttribute("data-theme", dark ? "light" : "dark");
+  render();
+});
+function sortBy(k) {
+  if (st.sort === k) st.dir *= -1;
+  else { st.sort = k; st.dir = (k === "t" || k === "n" || k === "r") ? 1 : (k === "z" ? 1 : -1); }
+  render();
+}
+$("head").addEventListener("click", e => { const th = e.target.closest("th[data-s]"); if (th) sortBy(th.dataset.s); });
+$("head").addEventListener("keydown", e => { const th = e.target.closest("th[data-s]"); if (th && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); sortBy(th.dataset.s); } });
+
+async function boot() {
+  try {
+    const res = await fetch(`${DATA_URL}?t=${Math.floor(Date.now() / 60000)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    META = data;
+    ROWS = data.rows || [];
+    $("asof").textContent = data.asof || "latest";
+    $("updated").textContent = data.updated_at ? `Updated ${data.updated_at.replace("T", " ").replace("Z", " UTC")}` : "";
+    renderCrossings(data.crossings || []);
+    render();
+  } catch (err) {
+    $("error").hidden = false;
+    $("error").textContent = `Could not load live scan data (${err.message}).`;
+    $("body").innerHTML = `<tr><td colspan="11" class="empty">Failed to load data feed.</td></tr>`;
+  }
+}
+boot();
+</script>
+</body>
+</html>
